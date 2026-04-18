@@ -1,0 +1,18 @@
+apiVersion: 1
+
+datasources:
+  - name: InfluxDB-VES
+    type: influxdb
+    access: proxy
+    url: http://influxdb:8086
+    isDefault: true
+    jsonData:
+      # Prefer InfluxQL for InfluxDB 2.x -> 3.x portability (see SDD-001 D1).
+      # Flux is in maintenance mode upstream since 2023; InfluxQL works on
+      # both InfluxDB 2.x and 3.x Core.
+      version: InfluxQL
+      httpMode: GET
+      dbName: ves
+    secureJsonData:
+      token: dev-token-not-for-production
+    editable: true

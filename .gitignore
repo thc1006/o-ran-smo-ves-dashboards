@@ -1,0 +1,27 @@
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+uv.lock
+
+# Local InfluxDB / Grafana state
+demo/data/
+demo/.influx-token
+
+# Probe output
+docs/schema-ground-truth-*.md
+!docs/schema-ground-truth-TEMPLATE.md
+
+# Kubernetes / Helm caches
+kind/kubeconfig
+kind/.helm-cache/
+kind/values-local.yaml
+
+# Editors
+.vscode/
+.idea/
+*.swp
+
+# OS
+.DS_Store
+Thumbs.db

@@ -1,0 +1,28 @@
+# kind cluster used for Phase 1 schema probing. One control-plane + one
+# worker, both with host-port mappings for InfluxDB and Grafana so the
+# outside host can hit the services directly.
+kind: Cluster
+apiVersion: kind.x-k8s.io/v1alpha4
+name: o-ran-smo
+nodes:
+  - role: control-plane
+    kubeadmConfigPatches:
+      - |
+        kind: InitConfiguration
+        nodeRegistration:
+          kubeletExtraArgs:
+            node-labels: "ingress-ready=true"
+    extraPortMappings:
+      - containerPort: 80
+        hostPort: 30080
+        protocol: TCP
+      - containerPort: 443
+        hostPort: 30443
+        protocol: TCP
+      - containerPort: 30000
+        hostPort: 30000
+        protocol: TCP   # Grafana NodePort (see o1ves-visualization Helm values)
+      - containerPort: 30001
+        hostPort: 30001
+        protocol: TCP   # InfluxDB NodePort
+  - role: worker

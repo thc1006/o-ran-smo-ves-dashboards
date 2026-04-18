@@ -1,0 +1,40 @@
+# Lightweight local dev stack -- NOT a replica of nonrtric-plt-influxlogger.
+#
+# Purpose: let contributors iterate on dashboard JSON with realistic-looking
+# data shapes, without having to bring up a full kind + ranpm stack.
+#
+# For schema-accurate data (Phase 1), use kind/install-ranpm.sh instead.
+
+services:
+  influxdb:
+    image: influxdb:2.7-alpine
+    restart: unless-stopped
+    ports:
+      - "8086:8086"
+    environment:
+      DOCKER_INFLUXDB_INIT_MODE: setup
+      DOCKER_INFLUXDB_INIT_USERNAME: admin
+      DOCKER_INFLUXDB_INIT_PASSWORD: admin-local-dev
+      DOCKER_INFLUXDB_INIT_ORG: winlab
+      DOCKER_INFLUXDB_INIT_BUCKET: ves
+      DOCKER_INFLUXDB_INIT_ADMIN_TOKEN: dev-token-not-for-production
+    volumes:
+      - ./data/influx:/var/lib/influxdb2
+
+  grafana:
+    image: grafana/grafana:12.2.0
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+    depends_on:
+      - influxdb
+    environment:
+      GF_SECURITY_ADMIN_USER: admin
+      GF_SECURITY_ADMIN_PASSWORD: admin
+      GF_USERS_ALLOW_SIGN_UP: "false"
+      # Auto-load any dashboards mounted under /var/lib/grafana/dashboards.
+      GF_DASHBOARDS_DEFAULT_HOME_DASHBOARD_PATH: /var/lib/grafana/dashboards/home.json
+    volumes:
+      - ./grafana-provisioning:/etc/grafana/provisioning:ro
+      - ../dashboards:/var/lib/grafana/dashboards:ro
+      - ./data/grafana:/var/lib/grafana

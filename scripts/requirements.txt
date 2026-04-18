@@ -1,0 +1,5 @@
+# Dev / probe dependencies (NOT runtime deps of the dashboards themselves,
+# which are pure JSON).
+pytest-ves>=0.2.0,<1
+influxdb-client>=1.48
+requests>=2.32
