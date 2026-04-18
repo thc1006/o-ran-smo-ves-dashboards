@@ -5,6 +5,9 @@ __pycache__/
 uv.lock
 
 # Local InfluxDB / Grafana state
+# Named volumes live under Docker's engine-managed location, not here.
+# Keep the legacy demo/data/ ignore for users who had bind-mount setups
+# from earlier v0.1.0 commits.
 demo/data/
 demo/.influx-token
 demo/.env

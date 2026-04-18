@@ -28,7 +28,11 @@ services:
       DOCKER_INFLUXDB_INIT_BUCKET: ${INFLUX_BUCKET:?set in .env}
       DOCKER_INFLUXDB_INIT_ADMIN_TOKEN: ${INFLUX_ADMIN_TOKEN:?set in .env}
     volumes:
-      - ./data/influx:/var/lib/influxdb2
+      # Named volume (not bind mount) so the InfluxDB container's internal
+      # UID can own the storage without host-side chown dance. Bind mounts
+      # into ./data/ from GitHub Actions runners hit UID-mismatch errors
+      # (runner creates dir as 1001; influxdb runs as other UID).
+      - influx-data:/var/lib/influxdb2
     healthcheck:
       test: ["CMD", "wget", "--spider", "-q", "http://localhost:8086/health"]
       interval: 3s
@@ -93,4 +97,13 @@ services:
     volumes:
       - ./grafana-provisioning:/etc/grafana/provisioning:ro
       - ../dashboards:/var/lib/grafana/dashboards:ro
-      - ./data/grafana:/var/lib/grafana
+      # Named volume so Grafana's internal UID 472 owns the storage
+      # cleanly. Prior bind mount to ./data/grafana/ failed on GitHub
+      # Actions runners with "/var/lib/grafana is not writable" because
+      # the runner created the host dir as a different UID and Grafana
+      # could not chown it inside the container.
+      - grafana-data:/var/lib/grafana
+
+volumes:
+  influx-data:
+  grafana-data:
