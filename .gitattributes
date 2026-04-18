@@ -1,0 +1,30 @@
+# Normalise line endings. Commit-time: always LF. Checkout: native.
+# Shell scripts in scripts/ and kind/ MUST be LF so bash on the Linux
+# CI runner will execute them; without .gitattributes, a Windows
+# contributor's commit could land CRLF-tainted scripts that fail with
+# "/bin/bash^M: bad interpreter".
+
+* text=auto eol=lf
+
+*.py     text eol=lf
+*.toml   text eol=lf
+*.cfg    text eol=lf
+*.yaml   text eol=lf
+*.yml    text eol=lf
+*.json   text eol=lf
+*.md     text eol=lf
+*.txt    text eol=lf
+*.sh     text eol=lf
+*.bash   text eol=lf
+
+# Grafana dashboard JSONs are authoritative and edited by humans and
+# tooling; keep them as text (not linguist-vendored).
+dashboards/**/*.json text eol=lf
+
+# Binary assets.
+*.png    binary
+*.jpg    binary
+*.jpeg   binary
+*.gif    binary
+*.ico    binary
+*.pdf    binary
