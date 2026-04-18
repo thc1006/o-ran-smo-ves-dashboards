@@ -77,7 +77,10 @@ schema.measurements(bucket: \"${INFLUX_BUCKET}\")
     echo "## Notes"
     echo
     echo "- Run on $(uname -a)"
-    echo "- pytest-ves version used for seeding: \$(pip show pytest-ves | grep ^Version | cut -d' ' -f2)"
+    # pytest-ves may not be installed when running this against a real
+    # ranpm; fall back to "(unknown)" rather than failing the probe.
+    PYTEST_VES_VERSION="$(pip show pytest-ves 2>/dev/null | awk -F': ' '/^Version:/ {print $2}')"
+    echo "- pytest-ves version used for seeding: ${PYTEST_VES_VERSION:-(not installed)}"
 } > "${OUT}"
 
 echo ">>> wrote ${OUT}"

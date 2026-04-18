@@ -1,5 +1,21 @@
 # Dev / probe dependencies (NOT runtime deps of the dashboards themselves,
 # which are pure JSON).
-pytest-ves>=0.2.0,<1
+#
+# pytest-ves is under development in a sibling repo and is not yet on PyPI.
+# Two installation options until the first tagged release lands:
+#
+#   (a) Editable install from a local clone (preferred for dev):
+#       pip install -e ../../pytest-ves
+#
+#   (b) Install from GitHub once the repo is public:
+#       pip install "pytest-ves @ git+https://github.com/thc1006/pytest-ves.git@main"
+#
+# Once pytest-ves is on PyPI, replace the line below with the version pin:
+#   pytest-ves>=0.2.0,<1
+#
+# For now, leave it as a commented-out placeholder so `pip install -r` does
+# not silently fail.
+# pytest-ves>=0.2.0,<1
+
 influxdb-client>=1.48
 requests>=2.32

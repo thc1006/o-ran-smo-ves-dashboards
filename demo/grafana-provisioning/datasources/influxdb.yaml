@@ -2,6 +2,10 @@ apiVersion: 1
 
 datasources:
   - name: InfluxDB-VES
+    # Explicit UID so dashboard JSON can reference it stably across fresh
+    # Grafana installs; without this, Grafana mints a random UID and every
+    # dashboard's datasource binding breaks on re-provision.
+    uid: influxdb-ves
     type: influxdb
     access: proxy
     url: http://influxdb:8086

@@ -23,13 +23,13 @@
       "type": "timeseries",
       "title": "PDCP Downlink Volume (DRB.PdcpSduVolumeDl_Filter)",
       "gridPos": { "x": 0, "y": 0, "w": 12, "h": 8 },
-      "datasource": { "type": "influxdb", "uid": "PE7195F5C1213A95D" },
+      "datasource": { "type": "influxdb", "uid": "influxdb-ves" },
       "id": 1,
       "targets": [
         {
           "refId": "A",
-          "datasource": { "type": "influxdb", "uid": "PE7195F5C1213A95D" },
-          "query": "SELECT mean(\"DRB.PdcpSduVolumeDl_Filter\") FROM /^SubNetwork=.*NRCellDU=.*$/ WHERE $timeFilter GROUP BY time($__interval), \"_measurement\" fill(null)",
+          "datasource": { "type": "influxdb", "uid": "influxdb-ves" },
+          "query": "SELECT mean(\"DRB.PdcpSduVolumeDl_Filter\") FROM /^SubNetwork=.*NRCellDU=.*$/ WHERE $timeFilter GROUP BY time($__interval) fill(null)",
           "rawQuery": true,
           "resultFormat": "time_series"
         }
@@ -41,13 +41,13 @@
       "type": "timeseries",
       "title": "PRB Usage DL (RRU.PrbUsedDl)",
       "gridPos": { "x": 12, "y": 0, "w": 12, "h": 8 },
-      "datasource": { "type": "influxdb", "uid": "PE7195F5C1213A95D" },
+      "datasource": { "type": "influxdb", "uid": "influxdb-ves" },
       "id": 2,
       "targets": [
         {
           "refId": "A",
-          "datasource": { "type": "influxdb", "uid": "PE7195F5C1213A95D" },
-          "query": "SELECT mean(\"RRU.PrbUsedDl\") FROM /^SubNetwork=.*NRCellDU=.*$/ WHERE $timeFilter GROUP BY time($__interval), \"_measurement\" fill(null)",
+          "datasource": { "type": "influxdb", "uid": "influxdb-ves" },
+          "query": "SELECT mean(\"RRU.PrbUsedDl\") FROM /^SubNetwork=.*NRCellDU=.*$/ WHERE $timeFilter GROUP BY time($__interval) fill(null)",
           "rawQuery": true,
           "resultFormat": "time_series"
         }
@@ -59,13 +59,13 @@
       "type": "stat",
       "title": "Active UEs per cell (last)",
       "gridPos": { "x": 0, "y": 8, "w": 12, "h": 6 },
-      "datasource": { "type": "influxdb", "uid": "PE7195F5C1213A95D" },
+      "datasource": { "type": "influxdb", "uid": "influxdb-ves" },
       "id": 3,
       "targets": [
         {
           "refId": "A",
-          "datasource": { "type": "influxdb", "uid": "PE7195F5C1213A95D" },
-          "query": "SELECT last(\"DRB.MeanActiveUeDl\") FROM /^SubNetwork=.*NRCellDU=.*$/ WHERE $timeFilter GROUP BY \"_measurement\"",
+          "datasource": { "type": "influxdb", "uid": "influxdb-ves" },
+          "query": "SELECT last(\"DRB.MeanActiveUeDl\") FROM /^SubNetwork=.*NRCellDU=.*$/ WHERE $timeFilter GROUP BY time($__interval)",
           "rawQuery": true,
           "resultFormat": "time_series"
         }
@@ -82,13 +82,13 @@
       "type": "timeseries",
       "title": "PRB Usage UL (RRU.PrbUsedUl)",
       "gridPos": { "x": 12, "y": 8, "w": 12, "h": 6 },
-      "datasource": { "type": "influxdb", "uid": "PE7195F5C1213A95D" },
+      "datasource": { "type": "influxdb", "uid": "influxdb-ves" },
       "id": 4,
       "targets": [
         {
           "refId": "A",
-          "datasource": { "type": "influxdb", "uid": "PE7195F5C1213A95D" },
-          "query": "SELECT mean(\"RRU.PrbUsedUl\") FROM /^SubNetwork=.*NRCellDU=.*$/ WHERE $timeFilter GROUP BY time($__interval), \"_measurement\" fill(null)",
+          "datasource": { "type": "influxdb", "uid": "influxdb-ves" },
+          "query": "SELECT mean(\"RRU.PrbUsedUl\") FROM /^SubNetwork=.*NRCellDU=.*$/ WHERE $timeFilter GROUP BY time($__interval) fill(null)",
           "rawQuery": true,
           "resultFormat": "time_series"
         }

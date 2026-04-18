@@ -99,48 +99,52 @@ def _build_parser() -> argparse.ArgumentParser:
 def main() -> int:
     args = _build_parser().parse_args()
     domains = [d.strip() for d in args.domains.split(",") if d.strip()]
+    # Up-front sanity check: pytest-ves is importable, not only reachable.
+    # Failing this early avoids confusing partial writes.
+    for builder in (FaultEventBuilder(), HeartbeatEventBuilder(), MeasurementEventBuilder()):
+        assert "commonEventHeader" in builder.build()["event"]
+
     client = InfluxDBClient(
         url=args.influx_url, token=args.influx_token, org=args.influx_org,
     )
-    write_api = client.write_api(write_options=SYNCHRONOUS)
+    try:
+        write_api = client.write_api(write_options=SYNCHRONOUS)
+        try:
+            interval = 1.0 / args.rate if args.rate > 0 else 0
+            fdns = [
+                tpl.format(i=i)
+                for tpl in _NRCELL_DU_FDN_TEMPLATES
+                for i in range(1, 4)
+            ]
 
-    interval = 1.0 / args.rate if args.rate > 0 else 0
-    fdns = [
-        tpl.format(i=i) for tpl in _NRCELL_DU_FDN_TEMPLATES for i in range(1, 4)
-    ]
-
-    # Quick builder instantiation proves pytest-ves is reachable even when
-    # we are in this script rather than inside pytest.
-    for _sanity_check in (FaultEventBuilder(), HeartbeatEventBuilder(), MeasurementEventBuilder()):
-        assert "commonEventHeader" in _sanity_check.build()["event"]
-
-    print(
-        f"seeding {args.count} points/domain ({','.join(domains)}) "
-        f"@ {args.rate}/s into {args.influx_url} bucket={args.influx_bucket}"
-    )
-
-    for i in range(args.count):
-        ts_ns = time.time_ns()
-        points = []
-        if "measurement" in domains:
-            points.append(_make_measurement_point(random.choice(fdns), ts_ns))
-        if "heartbeat" in domains:
-            points.append(
-                Point("ves_heartbeat")
-                .tag("sourceName", random.choice(fdns))
-                .field("heartbeatInterval", 60)
-                .time(ts_ns, write_precision=WritePrecision.NS)
+            print(
+                f"seeding {args.count} points/domain ({','.join(domains)}) "
+                f"@ {args.rate}/s into {args.influx_url} bucket={args.influx_bucket}"
             )
-        if "fault" in domains:
-            points.append(_make_fault_point(random.choice(fdns), ts_ns))
-        write_api.write(bucket=args.influx_bucket, record=points)
-        if i % 50 == 0 and i > 0:
-            print(f"  {i}/{args.count}")
-        if interval > 0:
-            time.sleep(interval)
 
-    write_api.close()
-    client.close()
+            for i in range(args.count):
+                ts_ns = time.time_ns()
+                points = []
+                if "measurement" in domains:
+                    points.append(_make_measurement_point(random.choice(fdns), ts_ns))
+                if "heartbeat" in domains:
+                    points.append(
+                        Point("ves_heartbeat")
+                        .tag("sourceName", random.choice(fdns))
+                        .field("heartbeatInterval", 60)
+                        .time(ts_ns, write_precision=WritePrecision.NS)
+                    )
+                if "fault" in domains:
+                    points.append(_make_fault_point(random.choice(fdns), ts_ns))
+                write_api.write(bucket=args.influx_bucket, record=points)
+                if i % 50 == 0 and i > 0:
+                    print(f"  {i}/{args.count}")
+                if interval > 0:
+                    time.sleep(interval)
+        finally:
+            write_api.close()
+    finally:
+        client.close()
     print("done.")
     return 0
 
