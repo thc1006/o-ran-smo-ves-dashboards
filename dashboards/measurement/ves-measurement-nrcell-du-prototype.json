@@ -1,0 +1,112 @@
+{
+  "annotations": {
+    "list": [
+      {
+        "builtIn": 1,
+        "datasource": { "type": "grafana", "uid": "-- Grafana --" },
+        "enable": true,
+        "hide": true,
+        "iconColor": "rgba(0, 211, 255, 1)",
+        "name": "Annotations & Alerts",
+        "type": "dashboard"
+      }
+    ]
+  },
+  "description": "Prototype dashboard for NR cell DU PM counters landing in the 'ves' bucket. Built against the 2026-04-19 demo-layer schema probe (NOT yet validated against real nonrtric-plt-influxlogger). See docs/schema-ground-truth-2026-04-19.md for the query contract.",
+  "editable": true,
+  "fiscalYearStartMonth": 0,
+  "graphTooltip": 1,
+  "id": null,
+  "links": [],
+  "panels": [
+    {
+      "type": "timeseries",
+      "title": "PDCP Downlink Volume (DRB.PdcpSduVolumeDl_Filter)",
+      "gridPos": { "x": 0, "y": 0, "w": 12, "h": 8 },
+      "datasource": { "type": "influxdb", "uid": "PE7195F5C1213A95D" },
+      "id": 1,
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": { "type": "influxdb", "uid": "PE7195F5C1213A95D" },
+          "query": "SELECT mean(\"DRB.PdcpSduVolumeDl_Filter\") FROM /^SubNetwork=.*NRCellDU=.*$/ WHERE $timeFilter GROUP BY time($__interval), \"_measurement\" fill(null)",
+          "rawQuery": true,
+          "resultFormat": "time_series"
+        }
+      ],
+      "fieldConfig": { "defaults": { "unit": "short" }, "overrides": [] },
+      "options": { "legend": { "displayMode": "table", "placement": "right" } }
+    },
+    {
+      "type": "timeseries",
+      "title": "PRB Usage DL (RRU.PrbUsedDl)",
+      "gridPos": { "x": 12, "y": 0, "w": 12, "h": 8 },
+      "datasource": { "type": "influxdb", "uid": "PE7195F5C1213A95D" },
+      "id": 2,
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": { "type": "influxdb", "uid": "PE7195F5C1213A95D" },
+          "query": "SELECT mean(\"RRU.PrbUsedDl\") FROM /^SubNetwork=.*NRCellDU=.*$/ WHERE $timeFilter GROUP BY time($__interval), \"_measurement\" fill(null)",
+          "rawQuery": true,
+          "resultFormat": "time_series"
+        }
+      ],
+      "fieldConfig": { "defaults": { "unit": "short" }, "overrides": [] },
+      "options": { "legend": { "displayMode": "table", "placement": "right" } }
+    },
+    {
+      "type": "stat",
+      "title": "Active UEs per cell (last)",
+      "gridPos": { "x": 0, "y": 8, "w": 12, "h": 6 },
+      "datasource": { "type": "influxdb", "uid": "PE7195F5C1213A95D" },
+      "id": 3,
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": { "type": "influxdb", "uid": "PE7195F5C1213A95D" },
+          "query": "SELECT last(\"DRB.MeanActiveUeDl\") FROM /^SubNetwork=.*NRCellDU=.*$/ WHERE $timeFilter GROUP BY \"_measurement\"",
+          "rawQuery": true,
+          "resultFormat": "time_series"
+        }
+      ],
+      "options": {
+        "reduceOptions": { "calcs": ["lastNotNull"], "fields": "", "values": false },
+        "colorMode": "value",
+        "graphMode": "area",
+        "textMode": "auto"
+      },
+      "fieldConfig": { "defaults": { "unit": "short" }, "overrides": [] }
+    },
+    {
+      "type": "timeseries",
+      "title": "PRB Usage UL (RRU.PrbUsedUl)",
+      "gridPos": { "x": 12, "y": 8, "w": 12, "h": 6 },
+      "datasource": { "type": "influxdb", "uid": "PE7195F5C1213A95D" },
+      "id": 4,
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": { "type": "influxdb", "uid": "PE7195F5C1213A95D" },
+          "query": "SELECT mean(\"RRU.PrbUsedUl\") FROM /^SubNetwork=.*NRCellDU=.*$/ WHERE $timeFilter GROUP BY time($__interval), \"_measurement\" fill(null)",
+          "rawQuery": true,
+          "resultFormat": "time_series"
+        }
+      ],
+      "fieldConfig": { "defaults": { "unit": "short" }, "overrides": [] },
+      "options": { "legend": { "displayMode": "table", "placement": "right" } }
+    }
+  ],
+  "refresh": "30s",
+  "schemaVersion": 38,
+  "style": "dark",
+  "tags": ["ves", "o-ran", "smo", "prototype"],
+  "templating": { "list": [] },
+  "time": { "from": "now-1h", "to": "now" },
+  "timepicker": {},
+  "timezone": "browser",
+  "title": "VES NR cell DU measurement (prototype)",
+  "uid": "ves-nrcell-du-proto",
+  "version": 1,
+  "weekStart": ""
+}
