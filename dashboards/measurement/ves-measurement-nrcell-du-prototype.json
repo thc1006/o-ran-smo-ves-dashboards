@@ -12,7 +12,7 @@
       }
     ]
   },
-  "description": "Prototype dashboard for NR cell DU PM counters landing in the 'ves' bucket. Built against the 2026-04-19 demo-layer schema probe (NOT yet validated against real nonrtric-plt-influxlogger). See docs/schema-ground-truth-reference-2026-04-19-demo.md for the query contract.",
+  "description": "Prototype dashboard for NR cell DU PM counters landing in the 'ves' bucket. Built against the 2026-04-19 demo-layer schema probe (NOT yet validated against real nonrtric-plt-influxlogger). See docs/schema-ground-truth-reference-2026-04-19-demo.md for the query contract. Datasource UID is hardcoded to 'influxdb-ves' to match the provisioning YAML; for grafana.com community upload use, re-export via Grafana UI so the JSON picks up __inputs / ${DS_INFLUXDB} templating (tracked for v0.2.0).",
   "editable": true,
   "fiscalYearStartMonth": 0,
   "graphTooltip": 1,

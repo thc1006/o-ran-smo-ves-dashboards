@@ -12,6 +12,7 @@ Requires: ``pip install pytest-ves influxdb-client requests``.
 from __future__ import annotations
 
 import argparse
+import os
 import random
 import sys
 import time
@@ -82,7 +83,6 @@ def _make_fault_point(source: str, ts_ns: int) -> Point:
 
 
 def _build_parser() -> argparse.ArgumentParser:
-    import os
     p = argparse.ArgumentParser(description=__doc__)
     p.add_argument(
         "--influx-url",
