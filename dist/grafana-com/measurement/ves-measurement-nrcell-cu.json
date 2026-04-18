@@ -54,7 +54,15 @@
       "fieldConfig": {
         "defaults": {
           "unit": "short",
-          "decimals": 0
+          "decimals": 0,
+          "custom": {
+            "drawStyle": "line",
+            "lineInterpolation": "smooth",
+            "lineWidth": 2,
+            "showPoints": "never",
+            "fillOpacity": 8,
+            "spanNulls": true
+          }
         },
         "overrides": []
       },
@@ -167,7 +175,15 @@
       "fieldConfig": {
         "defaults": {
           "unit": "short",
-          "decimals": 0
+          "decimals": 0,
+          "custom": {
+            "drawStyle": "line",
+            "lineInterpolation": "smooth",
+            "lineWidth": 2,
+            "showPoints": "never",
+            "fillOpacity": 8,
+            "spanNulls": true
+          }
         },
         "overrides": []
       },
@@ -305,7 +321,7 @@
   "timezone": "browser",
   "title": "VES NR cell CU measurement",
   "uid": "ves-nrcell-cu",
-  "version": 3,
+  "version": 4,
   "weekStart": "",
   "__inputs": [
     {

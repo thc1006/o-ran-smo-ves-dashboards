@@ -43,7 +43,20 @@
           }
         }
       ],
-      "fieldConfig": { "defaults": { "unit": "decbytes" }, "overrides": [] },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "decbytes",
+          "custom": {
+            "drawStyle": "line",
+            "lineInterpolation": "smooth",
+            "lineWidth": 2,
+            "showPoints": "never",
+            "fillOpacity": 8,
+            "spanNulls": true
+          }
+        },
+        "overrides": []
+      },
       "options": { "legend": { "displayMode": "list", "placement": "bottom", "showLegend": true } }
     },
     {
@@ -70,7 +83,21 @@
           }
         }
       ],
-      "fieldConfig": { "defaults": { "unit": "short", "decimals": 1 }, "overrides": [] },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "decimals": 1,
+          "custom": {
+            "drawStyle": "line",
+            "lineInterpolation": "smooth",
+            "lineWidth": 2,
+            "showPoints": "never",
+            "fillOpacity": 8,
+            "spanNulls": true
+          }
+        },
+        "overrides": []
+      },
       "options": { "legend": { "displayMode": "list", "placement": "bottom", "showLegend": true } }
     },
     {
@@ -130,7 +157,21 @@
           }
         }
       ],
-      "fieldConfig": { "defaults": { "unit": "short", "decimals": 1 }, "overrides": [] },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "decimals": 1,
+          "custom": {
+            "drawStyle": "line",
+            "lineInterpolation": "smooth",
+            "lineWidth": 2,
+            "showPoints": "never",
+            "fillOpacity": 8,
+            "spanNulls": true
+          }
+        },
+        "overrides": []
+      },
       "options": { "legend": { "displayMode": "list", "placement": "bottom", "showLegend": true } }
     }
   ],
@@ -175,6 +216,6 @@
   "timezone": "browser",
   "title": "VES NR cell DU measurement",
   "uid": "ves-nrcell-du",
-  "version": 4,
+  "version": 5,
   "weekStart": ""
 }
