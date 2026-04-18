@@ -6,13 +6,18 @@ datasources:
     access: proxy
     url: http://influxdb:8086
     isDefault: true
+    # InfluxQL against InfluxDB 2.x requires:
+    #   (a) a DBRP mapping so the database name routes to the bucket
+    #       (bootstrap: POST /api/v2/dbrps with {database: "ves", ...}),
+    #   (b) the auth token passed as an Authorization HTTP header, NOT
+    #       the InfluxDB v2 native header scheme. We use Grafana's
+    #       httpHeader facility for this so the token stays in
+    #       secureJsonData.
     jsonData:
-      # Prefer InfluxQL for InfluxDB 2.x -> 3.x portability (see SDD-001 D1).
-      # Flux is in maintenance mode upstream since 2023; InfluxQL works on
-      # both InfluxDB 2.x and 3.x Core.
       version: InfluxQL
       httpMode: GET
       dbName: ves
+      httpHeaderName1: "Authorization"
     secureJsonData:
-      token: dev-token-not-for-production
+      httpHeaderValue1: "Token dev-token-not-for-production"
     editable: true

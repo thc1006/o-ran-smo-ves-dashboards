@@ -20,6 +20,49 @@ services:
       DOCKER_INFLUXDB_INIT_ADMIN_TOKEN: dev-token-not-for-production
     volumes:
       - ./data/influx:/var/lib/influxdb2
+    healthcheck:
+      test: ["CMD", "wget", "--spider", "-q", "http://localhost:8086/health"]
+      interval: 3s
+      timeout: 2s
+      retries: 20
+
+  # One-shot bootstrap: create an InfluxDB v1 DBRP mapping so Grafana's
+  # InfluxQL mode can route the 'ves' database name to the 'ves' bucket.
+  # Without this, Grafana proxy queries return "Authentication to data
+  # source failed" / no results.
+  influxdb-dbrp-bootstrap:
+    image: influxdb:2.7-alpine    # reuse the same image; influx CLI is built in
+    restart: "no"
+    depends_on:
+      influxdb:
+        condition: service_healthy
+    entrypoint: ["/bin/sh", "-c"]
+    command:
+      - |
+        set -eu
+        TOKEN=dev-token-not-for-production
+        # Set active config once (idempotent-ish; influx config create errors
+        # on second run but we just swallow it and move on).
+        influx config create --config-name bootstrap \
+            --host-url http://influxdb:8086 \
+            --org winlab \
+            --token "$$TOKEN" \
+            --active 2>/dev/null \
+            || influx config set --config-name bootstrap --active
+        # List existing dbrps; if 'ves' already mapped, exit 0.
+        if influx v1 dbrp list --json 2>/dev/null | grep -q '"database": "ves"'; then
+            echo "dbrp for database=ves already present"
+            exit 0
+        fi
+        BUCKET_ID=$$(influx bucket list --name ves --json | \
+            sed -n 's/.*"id": "\([^"]*\)".*/\1/p' | head -n1)
+        echo "creating dbrp: database=ves -> bucket=$$BUCKET_ID"
+        influx v1 dbrp create \
+            --bucket-id "$$BUCKET_ID" \
+            --db ves \
+            --rp autogen \
+            --default
+        echo "dbrp bootstrap done"
 
   grafana:
     image: grafana/grafana:12.2.0
@@ -27,13 +70,12 @@ services:
     ports:
       - "3000:3000"
     depends_on:
-      - influxdb
+      influxdb-dbrp-bootstrap:
+        condition: service_completed_successfully
     environment:
       GF_SECURITY_ADMIN_USER: admin
       GF_SECURITY_ADMIN_PASSWORD: admin
       GF_USERS_ALLOW_SIGN_UP: "false"
-      # Auto-load any dashboards mounted under /var/lib/grafana/dashboards.
-      GF_DASHBOARDS_DEFAULT_HOME_DASHBOARD_PATH: /var/lib/grafana/dashboards/home.json
     volumes:
       - ./grafana-provisioning:/etc/grafana/provisioning:ro
       - ../dashboards:/var/lib/grafana/dashboards:ro

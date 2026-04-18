@@ -59,19 +59,23 @@ Until that PR lands, dashboard authoring is blocked on guesswork.
 
 ```bash
 cd demo
-docker compose up -d
-# open Grafana http://localhost:3000 (admin/admin)
+docker compose up -d         # influxdb + dbrp-bootstrap + grafana
+# open Grafana  http://localhost:3000 (admin / admin)
 # open InfluxDB http://localhost:8086
 
 # Seed fake VES events directly into InfluxDB using pytest-ves:
-python ../scripts/seed-events.py \
-    --influx-url http://localhost:8086 \
-    --influx-token $(cat .influx-token) \
-    --count 500 --rate 10
+pip install -r ../scripts/requirements.txt
+python ../scripts/seed-events.py --count 500 --rate 10
 ```
 
-This is good for iterating on dashboard visuals. It is **not** representative
-of the real `nonrtric-plt-influxlogger` schema; Phase 1 addresses that.
+After the seeder finishes, open Grafana and browse the `VES` folder. The
+`ves-nrcell-du-proto` dashboard should render data on its 4 panels.
+
+This layer is good for iterating on dashboard visuals. It is **not**
+representative of the real `nonrtric-plt-influxlogger` schema; Phase 1
+(Layer 2 below) addresses that. See
+`docs/schema-ground-truth-reference-2026-04-19-demo.md` for the exact
+schema the dashboard targets right now.
 
 ### Layer 2 -- kind + real nonrtric-plt-ranpm (heavy, for schema probing)
 
