@@ -3,6 +3,10 @@
 # Purpose: let contributors iterate on dashboard JSON with realistic-looking
 # data shapes, without having to bring up a full kind + ranpm stack.
 #
+# Secrets (admin token, admin password) are read from .env in this directory.
+# Copy .env.example to .env before first run and change the CHANGE-ME values
+# if the stack will be reachable from outside localhost.
+#
 # For schema-accurate data (Phase 1), use kind/install-ranpm.sh instead.
 
 services:
@@ -11,13 +15,14 @@ services:
     restart: unless-stopped
     ports:
       - "8086:8086"
+    env_file: .env
     environment:
       DOCKER_INFLUXDB_INIT_MODE: setup
-      DOCKER_INFLUXDB_INIT_USERNAME: admin
-      DOCKER_INFLUXDB_INIT_PASSWORD: admin-local-dev
-      DOCKER_INFLUXDB_INIT_ORG: winlab
-      DOCKER_INFLUXDB_INIT_BUCKET: ves
-      DOCKER_INFLUXDB_INIT_ADMIN_TOKEN: dev-token-not-for-production
+      DOCKER_INFLUXDB_INIT_USERNAME: ${INFLUX_ADMIN_USER:?set in .env}
+      DOCKER_INFLUXDB_INIT_PASSWORD: ${INFLUX_ADMIN_PASSWORD:?set in .env}
+      DOCKER_INFLUXDB_INIT_ORG: ${INFLUX_ORG:?set in .env}
+      DOCKER_INFLUXDB_INIT_BUCKET: ${INFLUX_BUCKET:?set in .env}
+      DOCKER_INFLUXDB_INIT_ADMIN_TOKEN: ${INFLUX_ADMIN_TOKEN:?set in .env}
     volumes:
       - ./data/influx:/var/lib/influxdb2
     healthcheck:
@@ -27,39 +32,36 @@ services:
       retries: 20
 
   # One-shot bootstrap: create an InfluxDB v1 DBRP mapping so Grafana's
-  # InfluxQL mode can route the 'ves' database name to the 'ves' bucket.
-  # Without this, Grafana proxy queries return "Authentication to data
-  # source failed" / no results.
+  # InfluxQL mode can route the database name to the bucket. Without this,
+  # Grafana proxy queries return "Authentication to data source failed".
   influxdb-dbrp-bootstrap:
-    image: influxdb:2.7-alpine    # reuse the same image; influx CLI is built in
+    image: influxdb:2.7-alpine    # reuse; ships influx CLI for free
     restart: "no"
     depends_on:
       influxdb:
         condition: service_healthy
+    env_file: .env
     entrypoint: ["/bin/sh", "-c"]
     command:
       - |
         set -eu
-        TOKEN=dev-token-not-for-production
-        # Set active config once (idempotent-ish; influx config create errors
-        # on second run but we just swallow it and move on).
         influx config create --config-name bootstrap \
             --host-url http://influxdb:8086 \
-            --org winlab \
-            --token "$$TOKEN" \
+            --org "$$INFLUX_ORG" \
+            --token "$$INFLUX_ADMIN_TOKEN" \
             --active 2>/dev/null \
             || influx config set --config-name bootstrap --active
-        # List existing dbrps; if 'ves' already mapped, exit 0.
-        if influx v1 dbrp list --json 2>/dev/null | grep -q '"database": "ves"'; then
-            echo "dbrp for database=ves already present"
+        if influx v1 dbrp list --json 2>/dev/null \
+             | grep -q "\"database\": \"$$INFLUX_BUCKET\""; then
+            echo "dbrp for database=$$INFLUX_BUCKET already present"
             exit 0
         fi
-        BUCKET_ID=$$(influx bucket list --name ves --json | \
+        BUCKET_ID=$$(influx bucket list --name "$$INFLUX_BUCKET" --json | \
             sed -n 's/.*"id": "\([^"]*\)".*/\1/p' | head -n1)
-        echo "creating dbrp: database=ves -> bucket=$$BUCKET_ID"
+        echo "creating dbrp: database=$$INFLUX_BUCKET -> bucket=$$BUCKET_ID"
         influx v1 dbrp create \
             --bucket-id "$$BUCKET_ID" \
-            --db ves \
+            --db "$$INFLUX_BUCKET" \
             --rp autogen \
             --default
         echo "dbrp bootstrap done"
@@ -72,10 +74,13 @@ services:
     depends_on:
       influxdb-dbrp-bootstrap:
         condition: service_completed_successfully
+    env_file: .env
     environment:
-      GF_SECURITY_ADMIN_USER: admin
-      GF_SECURITY_ADMIN_PASSWORD: admin
+      GF_SECURITY_ADMIN_USER: ${GRAFANA_ADMIN_USER:?set in .env}
+      GF_SECURITY_ADMIN_PASSWORD: ${GRAFANA_ADMIN_PASSWORD:?set in .env}
       GF_USERS_ALLOW_SIGN_UP: "false"
+      # Pass the InfluxDB token through to provisioning templates.
+      INFLUX_ADMIN_TOKEN: ${INFLUX_ADMIN_TOKEN:?set in .env}
     volumes:
       - ./grafana-provisioning:/etc/grafana/provisioning:ro
       - ../dashboards:/var/lib/grafana/dashboards:ro

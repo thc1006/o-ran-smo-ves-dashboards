@@ -23,5 +23,7 @@ datasources:
       dbName: ves
       httpHeaderName1: "Authorization"
     secureJsonData:
-      httpHeaderValue1: "Token dev-token-not-for-production"
+      # Template expansion pulls ${INFLUX_ADMIN_TOKEN} from the grafana
+      # container's env (set via env_file: .env in docker-compose.yaml).
+      httpHeaderValue1: "Token $INFLUX_ADMIN_TOKEN"
     editable: true

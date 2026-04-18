@@ -4,8 +4,9 @@
 - **日期：** 2026-04-19
 - **作者：** thc1006 @ NYCU WinLab
 - **版本：** 0.1.0 draft
-- **前置研究：** `../../RESEARCH_NOTES_2026-04-17.md`、`../../CLAUDE.md`
-- **姊妹專案：** `../pytest-ves/ADR-001-design.md`
+- **前置研究：** NYCU WinLab internal research tree (local-only; not
+  published with this repo). 關鍵決策已內化在本 SDD 中。
+- **姊妹專案：** `pytest-ves`（獨立 repo，整合契約見本文最末附錄 A）
 
 ---
 
@@ -267,7 +268,7 @@ jobs:
   release:
     if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags/')
     steps:
-      - build Helm chart → push OCI Harbor (重用 winlab-o1ves 的 Harbor 座標)
+      - build Helm chart → push OCI Harbor (NYCU WinLab 團隊 Harbor 座標)
       - publish each dashboard to grafana.com via API
       - update README with grafana.com IDs
 ```
@@ -319,7 +320,7 @@ kubectl apply -f demo/grafana.yaml
 ### 9.3 v0.1.0 發佈（1 週末）
 - [ ] GitHub Actions：lint + test
 - [ ] 上傳 3 個 dashboard 至 grafana.com，取得 ID
-- [ ] 發表 release tag；推到 winlab-o1ves 或新 repo
+- [ ] 發表 release tag；此 repo 為 canonical 發佈來源
 
 ### 9.4 v0.2.0（之後 1 個月）
 - [ ] 剩餘 3 個 dashboard

@@ -82,11 +82,27 @@ def _make_fault_point(source: str, ts_ns: int) -> Point:
 
 
 def _build_parser() -> argparse.ArgumentParser:
+    import os
     p = argparse.ArgumentParser(description=__doc__)
-    p.add_argument("--influx-url", default="http://localhost:8086")
-    p.add_argument("--influx-token", default="dev-token-not-for-production")
-    p.add_argument("--influx-org", default="winlab")
-    p.add_argument("--influx-bucket", default="ves")
+    p.add_argument(
+        "--influx-url",
+        default=os.environ.get("INFLUX_URL", "http://localhost:8086"),
+    )
+    # Token default now comes from env, not a hard-coded string in source.
+    # Matches the .env.example pattern used by demo/docker-compose.yaml.
+    p.add_argument(
+        "--influx-token",
+        default=os.environ.get("INFLUX_ADMIN_TOKEN"),
+        help="InfluxDB admin token; defaults to $INFLUX_ADMIN_TOKEN",
+    )
+    p.add_argument(
+        "--influx-org",
+        default=os.environ.get("INFLUX_ORG", "winlab"),
+    )
+    p.add_argument(
+        "--influx-bucket",
+        default=os.environ.get("INFLUX_BUCKET", "ves"),
+    )
     p.add_argument("--count", type=int, default=500, help="points per domain")
     p.add_argument("--rate", type=float, default=10.0, help="points per second")
     p.add_argument(
@@ -98,6 +114,12 @@ def _build_parser() -> argparse.ArgumentParser:
 
 def main() -> int:
     args = _build_parser().parse_args()
+    if not args.influx_token:
+        sys.stderr.write(
+            "error: no InfluxDB token. Either pass --influx-token or set "
+            "$INFLUX_ADMIN_TOKEN (see demo/.env.example).\n"
+        )
+        return 2
     domains = [d.strip() for d in args.domains.split(",") if d.strip()]
     # Up-front sanity check: pytest-ves is importable, not only reachable.
     # Failing this early avoids confusing partial writes.

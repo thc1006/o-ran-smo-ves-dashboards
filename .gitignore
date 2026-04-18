@@ -7,6 +7,7 @@ uv.lock
 # Local InfluxDB / Grafana state
 demo/data/
 demo/.influx-token
+demo/.env
 
 # Probe output -- by default keep local runs out of git; explicitly commit
 # reference runs (e.g. the demo-layer validation) via `git add -f`.
