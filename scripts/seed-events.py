@@ -126,9 +126,17 @@ def main() -> int:
     for builder in (FaultEventBuilder(), HeartbeatEventBuilder(), MeasurementEventBuilder()):
         assert "commonEventHeader" in builder.build()["event"]
 
-    client = InfluxDBClient(
-        url=args.influx_url, token=args.influx_token, org=args.influx_org,
-    )
+    try:
+        client = InfluxDBClient(
+            url=args.influx_url, token=args.influx_token, org=args.influx_org,
+        )
+    except Exception as exc:
+        sys.stderr.write(
+            f"error: cannot open InfluxDB connection at {args.influx_url}: {exc}\n"
+            f"  is the demo stack running? (docker compose -f demo/docker-compose.yaml up -d)\n"
+        )
+        return 3
+
     try:
         write_api = client.write_api(write_options=SYNCHRONOUS)
         try:
@@ -144,6 +152,7 @@ def main() -> int:
                 f"@ {args.rate}/s into {args.influx_url} bucket={args.influx_bucket}"
             )
 
+            failed_in_a_row = 0
             for i in range(args.count):
                 ts_ns = time.time_ns()
                 points = []
@@ -158,7 +167,21 @@ def main() -> int:
                     )
                 if "fault" in domains:
                     points.append(_make_fault_point(random.choice(fdns), ts_ns))
-                write_api.write(bucket=args.influx_bucket, record=points)
+                try:
+                    write_api.write(bucket=args.influx_bucket, record=points)
+                except Exception as exc:
+                    failed_in_a_row += 1
+                    sys.stderr.write(
+                        f"warning: write failed at batch {i} "
+                        f"({type(exc).__name__}: {str(exc)[:120]})\n"
+                    )
+                    if failed_in_a_row > 5:
+                        sys.stderr.write(
+                            "error: >5 consecutive write failures; aborting.\n"
+                        )
+                        return 4
+                else:
+                    failed_in_a_row = 0
                 if i % 50 == 0 and i > 0:
                     print(f"  {i}/{args.count}")
                 if interval > 0:

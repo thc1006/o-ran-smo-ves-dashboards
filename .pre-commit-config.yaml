@@ -41,22 +41,48 @@ repos:
         args:
           - -c
           - |
-            import pathlib, re, sys
-            # ADR-001 of this repo: 'dev-token-*' literals belong in
-            # demo/.env.example only. Anywhere else is a regression.
-            allowed = {pathlib.Path("demo/.env.example")}
+            # ADR-001 of this repo: `dev-token-*` literals belong in
+            # demo/.env.example only. Anywhere else would be a regression
+            # (prior rounds had the string hard-coded in 4 files).
+            #
+            # Scan ONLY git-tracked files (via `git ls-files`) so we don't
+            # false-positive on .venv, demo/.env (gitignored), node_modules,
+            # docker volume mounts, etc. Also allowlist docs/adr/**/*.md
+            # because ADRs document the historical token for explanatory
+            # purposes.
+            import pathlib, re, subprocess, sys
+
+            allowed_prefixes = (
+                "demo/.env.example",
+                "docs/adr/",
+                ".pre-commit-config.yaml",
+            )
+
+            try:
+                tracked = subprocess.check_output(
+                    ["git", "ls-files"], text=True
+                ).splitlines()
+            except Exception as e:
+                sys.exit(f"cannot run `git ls-files`: {e}")
+
             bad = []
-            for p in pathlib.Path(".").rglob("*"):
-                if not p.is_file() or p in allowed:
+            pattern = re.compile(r"dev-token-[A-Za-z0-9\-]+")
+            for rel in tracked:
+                if any(rel.replace("\\", "/").startswith(p) for p in allowed_prefixes):
                     continue
-                if ".git" in p.parts or "data" in p.parts or ".pre-commit" in p.parts:
+                p = pathlib.Path(rel)
+                if not p.is_file():
                     continue
                 try:
                     text = p.read_text(encoding="utf-8", errors="ignore")
                 except Exception:
                     continue
-                for m in re.finditer(r"dev-token-[A-Za-z0-9\-]+", text):
-                    bad.append(f"{p}: {m.group(0)}")
+                for m in pattern.finditer(text):
+                    bad.append(f"{rel}: {m.group(0)}")
+
             if bad:
-                sys.exit("dev-token leaked into tracked files:\n  " + "\n  ".join(bad))
+                sys.exit(
+                    "dev-token literal found in tracked files (allowed only in "
+                    "demo/.env.example and docs/adr/):\n  " + "\n  ".join(bad)
+                )
         pass_filenames: false
