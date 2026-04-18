@@ -1,5 +1,10 @@
 # o-ran-smo-ves-dashboards
 
+[![Status](https://img.shields.io/badge/status-v0.1.0%20scaffold-yellow)](CHANGELOG.md)
+[![Grafana](https://img.shields.io/badge/grafana-12.2.0-orange)](demo/docker-compose.yaml)
+[![InfluxDB](https://img.shields.io/badge/influxdb-2.7-blueviolet)](demo/docker-compose.yaml)
+[![License](https://img.shields.io/badge/license-Apache%202.0-blue)](LICENSE)
+
 Grafana dashboard pack for O-RAN SMO VES events stored in InfluxDB via
 `nonrtric-plt-influxlogger`. Covers the four SMO-relevant VES 7.2.1 domains
 (fault, measurement, heartbeat, stndDefined) that the Prometheus/KPM path

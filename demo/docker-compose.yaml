@@ -11,7 +11,11 @@
 
 services:
   influxdb:
-    image: influxdb:2.7-alpine
+    # Digest-pinned for reproducibility; refresh via
+    #   docker pull influxdb:2.7-alpine
+    #   docker inspect influxdb:2.7-alpine --format '{{index .RepoDigests 0}}'
+    # Last refreshed 2026-04-19.
+    image: influxdb:2.7-alpine@sha256:cf6476ce69eb017522fce67a5e69670d79ce05322b9271accfb9a9ca39c97b07
     restart: unless-stopped
     ports:
       - "8086:8086"
@@ -35,7 +39,8 @@ services:
   # InfluxQL mode can route the database name to the bucket. Without this,
   # Grafana proxy queries return "Authentication to data source failed".
   influxdb-dbrp-bootstrap:
-    image: influxdb:2.7-alpine    # reuse; ships influx CLI for free
+    # Reuse influxdb image; ships influx CLI. Same digest as above.
+    image: influxdb:2.7-alpine@sha256:cf6476ce69eb017522fce67a5e69670d79ce05322b9271accfb9a9ca39c97b07
     restart: "no"
     depends_on:
       influxdb:
@@ -67,7 +72,11 @@ services:
         echo "dbrp bootstrap done"
 
   grafana:
-    image: grafana/grafana:12.2.0
+    # Digest-pinned; refresh via
+    #   docker pull grafana/grafana:12.2.0
+    #   docker inspect grafana/grafana:12.2.0 --format '{{index .RepoDigests 0}}'
+    # Last refreshed 2026-04-19.
+    image: grafana/grafana:12.2.0@sha256:74144189b38447facf737dfd0f3906e42e0776212bf575dc3334c3609183adf7
     restart: unless-stopped
     ports:
       - "3000:3000"

@@ -1,0 +1,62 @@
+---
+# Install once:   pre-commit install
+# Manual run:     pre-commit run --all-files
+#
+# Focused on the specific mistakes that round-1..4 reviews caught that
+# could have been prevented at commit time:
+#   - malformed JSON dashboards (check-json)
+#   - stale YAML (check-yaml)
+#   - trailing whitespace and missing newlines in shell / markdown
+#   - shell script syntax errors (shellcheck)
+#   - accidentally committed .env / secrets
+
+repos:
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v5.0.0
+    hooks:
+      - id: check-yaml
+        args: [--allow-multiple-documents]
+      - id: check-json
+      - id: check-merge-conflict
+      - id: end-of-file-fixer
+      - id: trailing-whitespace
+      - id: mixed-line-ending
+        args: [--fix=lf]
+      - id: check-added-large-files
+        args: [--maxkb=500]      # dashboards can be moderately big
+      - id: detect-private-key
+
+  - repo: https://github.com/shellcheck-py/shellcheck-py
+    rev: v0.10.0.1
+    hooks:
+      - id: shellcheck
+        args: [-e, SC2086]   # too noisy for our bootstrap scripts
+
+  - repo: local
+    hooks:
+      - id: no-dev-tokens-in-tracked
+        name: dev tokens must not leak into tracked files
+        language: system
+        entry: python
+        args:
+          - -c
+          - |
+            import pathlib, re, sys
+            # ADR-001 of this repo: 'dev-token-*' literals belong in
+            # demo/.env.example only. Anywhere else is a regression.
+            allowed = {pathlib.Path("demo/.env.example")}
+            bad = []
+            for p in pathlib.Path(".").rglob("*"):
+                if not p.is_file() or p in allowed:
+                    continue
+                if ".git" in p.parts or "data" in p.parts or ".pre-commit" in p.parts:
+                    continue
+                try:
+                    text = p.read_text(encoding="utf-8", errors="ignore")
+                except Exception:
+                    continue
+                for m in re.finditer(r"dev-token-[A-Za-z0-9\-]+", text):
+                    bad.append(f"{p}: {m.group(0)}")
+            if bad:
+                sys.exit("dev-token leaked into tracked files:\n  " + "\n  ".join(bad))
+        pass_filenames: false
