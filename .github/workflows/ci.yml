@@ -80,15 +80,21 @@ jobs:
         run: |
           cp .env.example .env
           docker compose up -d
-          # wait for grafana health
-          for i in $(seq 1 60); do
+          # Wait up to 180s for Grafana. GitHub runners (ubuntu-latest)
+          # are slower than local Docker Desktop; first run on a cold
+          # cache routinely takes 60-90s. Earlier 60s budget was
+          # insufficient.
+          for i in $(seq 1 180); do
             if curl -sf http://localhost:3000/api/health >/dev/null 2>&1; then
               echo "grafana ready after ${i}s"
-              break
+              exit 0
             fi
             sleep 1
           done
-          curl -sf http://localhost:3000/api/health
+          echo "grafana did not become healthy within 180s"
+          docker compose ps
+          docker logs demo-grafana-1
+          exit 1
 
       - name: Verify DBRP bootstrap completed
         run: |
