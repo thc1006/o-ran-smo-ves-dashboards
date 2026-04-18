@@ -157,8 +157,25 @@ def _build_parser() -> argparse.ArgumentParser:
         "--influx-bucket",
         default=os.environ.get("INFLUX_BUCKET", "ves"),
     )
-    p.add_argument("--count", type=int, default=500, help="points per domain")
-    p.add_argument("--rate", type=float, default=10.0, help="points per second")
+    p.add_argument(
+        "--count", type=int, default=500,
+        help=(
+            "Number of ticks (time steps) to generate. For the measurement "
+            "domain each tick writes one point per FDN across every DU and "
+            "CU cell, so the total measurement point count is "
+            "count * (len(DU FDNs) + len(CU FDNs)). Heartbeat and fault "
+            "domains emit exactly one point per tick."
+        ),
+    )
+    p.add_argument(
+        "--rate", type=float, default=10.0,
+        help=(
+            "Ticks-per-second throttle applied at ingest. Only affects how "
+            "quickly the seeder streams writes to InfluxDB -- the *temporal "
+            "spacing* of the generated points is fixed by --window-seconds "
+            "/ --count. Set to 0 to write as fast as InfluxDB accepts."
+        ),
+    )
     p.add_argument(
         "--domains", default="measurement,heartbeat,fault",
         help="comma-separated subset of: measurement,heartbeat,fault"

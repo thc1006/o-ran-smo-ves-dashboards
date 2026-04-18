@@ -47,7 +47,7 @@
           "id": "renameByRegex",
           "options": {
             "regex": ".*ManagedElement=([^,]+),NRCellCU=(\\d+)\\.(attempts|success)",
-            "renamePattern": "$1 cell $2 ($3)"
+            "renamePattern": "$1 / cell $2 ($3)"
           }
         }
       ],
@@ -160,7 +160,7 @@
           "id": "renameByRegex",
           "options": {
             "regex": ".*ManagedElement=([^,]+),NRCellCU=(\\d+)\\.(attempts|success)",
-            "renamePattern": "$1 cell $2 ($3)"
+            "renamePattern": "$1 / cell $2 ($3)"
           }
         }
       ],
@@ -305,7 +305,7 @@
   "timezone": "browser",
   "title": "VES NR cell CU measurement",
   "uid": "ves-nrcell-cu",
-  "version": 2,
+  "version": 3,
   "weekStart": "",
   "__inputs": [
     {
