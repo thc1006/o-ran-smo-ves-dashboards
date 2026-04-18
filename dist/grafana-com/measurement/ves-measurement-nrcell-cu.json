@@ -29,7 +29,7 @@
         "x": 0,
         "y": 0,
         "w": 12,
-        "h": 8
+        "h": 9
       },
       "datasource": "${DS_INFLUXDB}",
       "id": 1,
@@ -42,34 +42,27 @@
           "resultFormat": "time_series"
         }
       ],
+      "transformations": [
+        {
+          "id": "renameByRegex",
+          "options": {
+            "regex": ".*ManagedElement=([^,]+),NRCellCU=(\\d+)\\.(attempts|success)",
+            "renamePattern": "$1 cell $2 ($3)"
+          }
+        }
+      ],
       "fieldConfig": {
         "defaults": {
-          "unit": "short"
+          "unit": "short",
+          "decimals": 0
         },
-        "overrides": [
-          {
-            "matcher": {
-              "id": "byRegexp",
-              "options": "SubNetwork=[^,]*,ManagedElement=([^,]+),NRCellCU=(\\d+)\\.(attempts|success)"
-            },
-            "properties": [
-              {
-                "id": "displayName",
-                "value": "$1 / NRCellCU=$2 ($3)"
-              }
-            ]
-          }
-        ]
+        "overrides": []
       },
       "options": {
         "legend": {
-          "displayMode": "table",
-          "placement": "right",
-          "showLegend": true,
-          "calcs": [
-            "mean",
-            "max"
-          ]
+          "displayMode": "list",
+          "placement": "bottom",
+          "showLegend": true
         }
       }
     },
@@ -80,7 +73,7 @@
         "x": 12,
         "y": 0,
         "w": 12,
-        "h": 8
+        "h": 9
       },
       "datasource": "${DS_INFLUXDB}",
       "id": 2,
@@ -93,6 +86,15 @@
           "resultFormat": "time_series"
         }
       ],
+      "transformations": [
+        {
+          "id": "renameByRegex",
+          "options": {
+            "regex": ".*ManagedElement=([^,]+),NRCellCU=(\\d+)\\..*",
+            "renamePattern": "$1 / cell $2"
+          }
+        }
+      ],
       "options": {
         "reduceOptions": {
           "calcs": [
@@ -103,12 +105,15 @@
         },
         "colorMode": "value",
         "graphMode": "area",
-        "textMode": "value_and_name"
+        "textMode": "value_and_name",
+        "justifyMode": "auto"
       },
       "fieldConfig": {
         "defaults": {
           "unit": "percent",
           "decimals": 1,
+          "min": 0,
+          "max": 100,
           "thresholds": {
             "mode": "absolute",
             "steps": [
@@ -127,20 +132,7 @@
             ]
           }
         },
-        "overrides": [
-          {
-            "matcher": {
-              "id": "byRegexp",
-              "options": "SubNetwork=[^,]*,ManagedElement=([^,]+),NRCellCU=(\\d+)"
-            },
-            "properties": [
-              {
-                "id": "displayName",
-                "value": "$1 / cell $2"
-              }
-            ]
-          }
-        ]
+        "overrides": []
       }
     },
     {
@@ -148,9 +140,9 @@
       "title": "NG Handover Execution (attempts vs success) per cell",
       "gridPos": {
         "x": 0,
-        "y": 8,
+        "y": 9,
         "w": 12,
-        "h": 8
+        "h": 9
       },
       "datasource": "${DS_INFLUXDB}",
       "id": 3,
@@ -163,34 +155,27 @@
           "resultFormat": "time_series"
         }
       ],
+      "transformations": [
+        {
+          "id": "renameByRegex",
+          "options": {
+            "regex": ".*ManagedElement=([^,]+),NRCellCU=(\\d+)\\.(attempts|success)",
+            "renamePattern": "$1 cell $2 ($3)"
+          }
+        }
+      ],
       "fieldConfig": {
         "defaults": {
-          "unit": "short"
+          "unit": "short",
+          "decimals": 0
         },
-        "overrides": [
-          {
-            "matcher": {
-              "id": "byRegexp",
-              "options": "SubNetwork=[^,]*,ManagedElement=([^,]+),NRCellCU=(\\d+)\\.(attempts|success)"
-            },
-            "properties": [
-              {
-                "id": "displayName",
-                "value": "$1 / NRCellCU=$2 ($3)"
-              }
-            ]
-          }
-        ]
+        "overrides": []
       },
       "options": {
         "legend": {
-          "displayMode": "table",
-          "placement": "right",
-          "showLegend": true,
-          "calcs": [
-            "mean",
-            "max"
-          ]
+          "displayMode": "list",
+          "placement": "bottom",
+          "showLegend": true
         }
       }
     },
@@ -199,9 +184,9 @@
       "title": "NG Handover Success Rate (last value)",
       "gridPos": {
         "x": 12,
-        "y": 8,
+        "y": 9,
         "w": 12,
-        "h": 8
+        "h": 9
       },
       "datasource": "${DS_INFLUXDB}",
       "id": 4,
@@ -214,6 +199,15 @@
           "resultFormat": "time_series"
         }
       ],
+      "transformations": [
+        {
+          "id": "renameByRegex",
+          "options": {
+            "regex": ".*ManagedElement=([^,]+),NRCellCU=(\\d+)\\..*",
+            "renamePattern": "$1 / cell $2"
+          }
+        }
+      ],
       "options": {
         "reduceOptions": {
           "calcs": [
@@ -224,12 +218,15 @@
         },
         "colorMode": "value",
         "graphMode": "area",
-        "textMode": "value_and_name"
+        "textMode": "value_and_name",
+        "justifyMode": "auto"
       },
       "fieldConfig": {
         "defaults": {
           "unit": "percent",
           "decimals": 1,
+          "min": 0,
+          "max": 100,
           "thresholds": {
             "mode": "absolute",
             "steps": [
@@ -248,20 +245,7 @@
             ]
           }
         },
-        "overrides": [
-          {
-            "matcher": {
-              "id": "byRegexp",
-              "options": "SubNetwork=[^,]*,ManagedElement=([^,]+),NRCellCU=(\\d+)"
-            },
-            "properties": [
-              {
-                "id": "displayName",
-                "value": "$1 / cell $2"
-              }
-            ]
-          }
-        ]
+        "overrides": []
       }
     }
   ],
@@ -321,7 +305,7 @@
   "timezone": "browser",
   "title": "VES NR cell CU measurement",
   "uid": "ves-nrcell-cu",
-  "version": 1,
+  "version": 2,
   "weekStart": "",
   "__inputs": [
     {

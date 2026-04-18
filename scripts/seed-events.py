@@ -50,8 +50,12 @@ _NRCELL_CU_FDN_TEMPLATES = [
     "SubNetwork=NYCU,ManagedElement=gNB-Keelung-{i:02d},NRCellCU=1",
 ]
 
+# 3GPP TS 28.552 PM counters. Kept here for reference / bucket probes;
+# the per-cell generators below produce values that respect the
+# physical relationships between these counters (e.g. success <= attempts)
+# so dashboards like "success rate = succ / att" render plausible
+# percentages in [0, 100] instead of pathological values like 2000%.
 _PM_COUNTER_NAMES_DU = [
-    # A minimal selection from 3GPP TS 28.552 NR cell DU counters.
     "DRB.PdcpSduVolumeDl_Filter",
     "DRB.PdcpSduVolumeUl_Filter",
     "DRB.MeanActiveUeDl",
@@ -59,7 +63,6 @@ _PM_COUNTER_NAMES_DU = [
     "RRU.PrbUsedUl",
 ]
 _PM_COUNTER_NAMES_CU = [
-    # 3GPP TS 28.552 NR cell CU counters -- RRC + NG handover.
     "RRC.ConnEstabAtt.sum",
     "RRC.ConnEstabSucc.sum",
     "NG.HOExeAtt",
@@ -67,13 +70,54 @@ _PM_COUNTER_NAMES_CU = [
 ]
 
 
-def _random_counter_values(names: list[str]) -> dict[str, float]:
-    return {name: round(random.uniform(0, 1_000_000), 2) for name in names}
+def _random_du_counters() -> dict[str, float]:
+    # PDCP SDU volume in bytes per granularity window (60s): a busy
+    # cell pushes O(10 MiB) DL, O(1 MiB) UL.
+    pdcp_dl = random.uniform(2_000_000, 20_000_000)
+    pdcp_ul = random.uniform(200_000, 3_000_000)
+    # Active UEs per cell, typical small-cell range.
+    active_ue = random.uniform(2.0, 30.0)
+    # PRB usage counts (raw, not percentage). A 100 MHz NR cell has ~273
+    # PRBs; counter is "PRBs used averaged over the window".
+    prb_dl = random.uniform(20, 220)
+    prb_ul = random.uniform(5, 120)
+    return {
+        "DRB.PdcpSduVolumeDl_Filter": round(pdcp_dl, 2),
+        "DRB.PdcpSduVolumeUl_Filter": round(pdcp_ul, 2),
+        "DRB.MeanActiveUeDl": round(active_ue, 2),
+        "RRU.PrbUsedDl": round(prb_dl, 2),
+        "RRU.PrbUsedUl": round(prb_ul, 2),
+    }
 
 
-def _make_measurement_point(fdn: str, ts_ns: int, counters: list[str]) -> Point:
+def _random_cu_counters() -> dict[str, float]:
+    # RRC connection establishment attempts per window; success is a
+    # realistic 92-99.5% of attempts -- anything above 100% is
+    # physically impossible and makes RAN engineers reflexively
+    # close the tab.
+    rrc_att = random.randint(500, 5000)
+    rrc_succ = random.randint(int(rrc_att * 0.92), int(rrc_att * 0.995))
+    # NG handover attempts per window; success is typically 95-99.8%.
+    ho_att = random.randint(30, 600)
+    ho_succ = random.randint(int(ho_att * 0.95), int(ho_att * 0.998))
+    return {
+        "RRC.ConnEstabAtt.sum": float(rrc_att),
+        "RRC.ConnEstabSucc.sum": float(rrc_succ),
+        "NG.HOExeAtt": float(ho_att),
+        "NG.HOExeSucc": float(ho_succ),
+    }
+
+
+def _make_du_point(fdn: str, ts_ns: int) -> Point:
     p = Point(fdn)
-    for k, v in _random_counter_values(counters).items():
+    for k, v in _random_du_counters().items():
+        p = p.field(k, v)
+    return p.time(ts_ns, write_precision=WritePrecision.NS)
+
+
+def _make_cu_point(fdn: str, ts_ns: int) -> Point:
+    p = Point(fdn)
+    for k, v in _random_cu_counters().items():
         p = p.field(k, v)
     return p.time(ts_ns, write_precision=WritePrecision.NS)
 
@@ -118,6 +162,15 @@ def _build_parser() -> argparse.ArgumentParser:
     p.add_argument(
         "--domains", default="measurement,heartbeat,fault",
         help="comma-separated subset of: measurement,heartbeat,fault"
+    )
+    p.add_argument(
+        "--window-seconds", type=float, default=3600.0,
+        help=(
+            "Spread generated timestamps retroactively across this many "
+            "seconds ending at 'now'. Default: 3600 (1 hour) so a Grafana "
+            "'Last 1 hour' view renders a smooth curve instead of a "
+            "single vertical spike at the right edge."
+        ),
     )
     return p
 
@@ -172,21 +225,26 @@ def main() -> int:
                 f"@ {args.rate}/s into {args.influx_url} bucket={args.influx_bucket}"
             )
 
+            # Spread timestamps retroactively across the requested window
+            # so Grafana's default "Last 1 hour" view shows a populated
+            # curve rather than a single vertical spike at the right edge.
+            now_ns = time.time_ns()
+            window_ns = int(args.window_seconds * 1_000_000_000)
+            step_ns = window_ns // max(args.count, 1)
+
             failed_in_a_row = 0
             for i in range(args.count):
-                ts_ns = time.time_ns()
+                # Oldest point first, newest at end-of-loop.
+                ts_ns = now_ns - window_ns + (i * step_ns)
+                # For measurement points, rotate through every cell each
+                # iteration so every series gets enough data density to
+                # render. Random.choice left gaps.
                 points = []
                 if "measurement" in domains:
-                    points.append(
-                        _make_measurement_point(
-                            random.choice(du_fdns), ts_ns, _PM_COUNTER_NAMES_DU
-                        )
-                    )
-                    points.append(
-                        _make_measurement_point(
-                            random.choice(cu_fdns), ts_ns, _PM_COUNTER_NAMES_CU
-                        )
-                    )
+                    for fdn in du_fdns:
+                        points.append(_make_du_point(fdn, ts_ns))
+                    for fdn in cu_fdns:
+                        points.append(_make_cu_point(fdn, ts_ns))
                 if "heartbeat" in domains:
                     points.append(
                         Point("ves_heartbeat")

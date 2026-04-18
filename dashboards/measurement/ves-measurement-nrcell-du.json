@@ -22,7 +22,7 @@
     {
       "type": "timeseries",
       "title": "PDCP Downlink Volume (DRB.PdcpSduVolumeDl_Filter) per cell",
-      "gridPos": { "x": 0, "y": 0, "w": 12, "h": 8 },
+      "gridPos": { "x": 0, "y": 0, "w": 12, "h": 9 },
       "datasource": { "type": "influxdb", "uid": "influxdb-ves" },
       "id": 1,
       "targets": [
@@ -34,21 +34,22 @@
           "resultFormat": "time_series"
         }
       ],
-      "fieldConfig": {
-        "defaults": { "unit": "decbytes" },
-        "overrides": [
-          {
-            "matcher": { "id": "byRegexp", "options": "SubNetwork=[^,]*,ManagedElement=([^,]+),NRCellDU=(\\d+)" },
-            "properties": [{ "id": "displayName", "value": "$1 / NRCellDU=$2" }]
+      "transformations": [
+        {
+          "id": "renameByRegex",
+          "options": {
+            "regex": ".*ManagedElement=([^,]+),NRCellDU=(\\d+)\\..*",
+            "renamePattern": "$1 / cell $2"
           }
-        ]
-      },
-      "options": { "legend": { "displayMode": "table", "placement": "right", "showLegend": true, "calcs": ["mean", "max"] } }
+        }
+      ],
+      "fieldConfig": { "defaults": { "unit": "decbytes" }, "overrides": [] },
+      "options": { "legend": { "displayMode": "list", "placement": "bottom", "showLegend": true } }
     },
     {
       "type": "timeseries",
       "title": "PRB Usage DL (RRU.PrbUsedDl) per cell",
-      "gridPos": { "x": 12, "y": 0, "w": 12, "h": 8 },
+      "gridPos": { "x": 12, "y": 0, "w": 12, "h": 9 },
       "datasource": { "type": "influxdb", "uid": "influxdb-ves" },
       "id": 2,
       "targets": [
@@ -60,52 +61,55 @@
           "resultFormat": "time_series"
         }
       ],
-      "fieldConfig": {
-        "defaults": { "unit": "short" },
-        "overrides": [
-          {
-            "matcher": { "id": "byRegexp", "options": "SubNetwork=[^,]*,ManagedElement=([^,]+),NRCellDU=(\\d+)" },
-            "properties": [{ "id": "displayName", "value": "$1 / NRCellDU=$2" }]
+      "transformations": [
+        {
+          "id": "renameByRegex",
+          "options": {
+            "regex": ".*ManagedElement=([^,]+),NRCellDU=(\\d+)\\..*",
+            "renamePattern": "$1 / cell $2"
           }
-        ]
-      },
-      "options": { "legend": { "displayMode": "table", "placement": "right", "showLegend": true, "calcs": ["mean", "max"] } }
+        }
+      ],
+      "fieldConfig": { "defaults": { "unit": "short", "decimals": 1 }, "overrides": [] },
+      "options": { "legend": { "displayMode": "list", "placement": "bottom", "showLegend": true } }
     },
     {
       "type": "stat",
       "title": "Active UEs per cell (last value)",
-      "gridPos": { "x": 0, "y": 8, "w": 12, "h": 6 },
+      "gridPos": { "x": 0, "y": 9, "w": 12, "h": 7 },
       "datasource": { "type": "influxdb", "uid": "influxdb-ves" },
       "id": 3,
       "targets": [
         {
           "refId": "A",
           "datasource": { "type": "influxdb", "uid": "influxdb-ves" },
-          "query": "SELECT last(\"DRB.MeanActiveUeDl\") FROM /^SubNetwork=$subnetwork.*ManagedElement=$gnb.*NRCellDU=.*$/ WHERE $timeFilter",
+          "query": "SELECT last(\"DRB.MeanActiveUeDl\") FROM /^SubNetwork=$subnetwork.*ManagedElement=$gnb.*NRCellDU=.*$/ WHERE $timeFilter GROUP BY *",
           "rawQuery": true,
           "resultFormat": "time_series"
+        }
+      ],
+      "transformations": [
+        {
+          "id": "renameByRegex",
+          "options": {
+            "regex": ".*ManagedElement=([^,]+),NRCellDU=(\\d+)\\..*",
+            "renamePattern": "$1 / cell $2"
+          }
         }
       ],
       "options": {
         "reduceOptions": { "calcs": ["lastNotNull"], "fields": "", "values": false },
         "colorMode": "value",
         "graphMode": "area",
-        "textMode": "value_and_name"
+        "textMode": "value_and_name",
+        "justifyMode": "auto"
       },
-      "fieldConfig": {
-        "defaults": { "unit": "short", "decimals": 0 },
-        "overrides": [
-          {
-            "matcher": { "id": "byRegexp", "options": "SubNetwork=[^,]*,ManagedElement=([^,]+),NRCellDU=(\\d+)" },
-            "properties": [{ "id": "displayName", "value": "$1 / cell $2" }]
-          }
-        ]
-      }
+      "fieldConfig": { "defaults": { "unit": "short", "decimals": 1 }, "overrides": [] }
     },
     {
       "type": "timeseries",
       "title": "PRB Usage UL (RRU.PrbUsedUl) per cell",
-      "gridPos": { "x": 12, "y": 8, "w": 12, "h": 6 },
+      "gridPos": { "x": 12, "y": 9, "w": 12, "h": 7 },
       "datasource": { "type": "influxdb", "uid": "influxdb-ves" },
       "id": 4,
       "targets": [
@@ -117,16 +121,17 @@
           "resultFormat": "time_series"
         }
       ],
-      "fieldConfig": {
-        "defaults": { "unit": "short" },
-        "overrides": [
-          {
-            "matcher": { "id": "byRegexp", "options": "SubNetwork=[^,]*,ManagedElement=([^,]+),NRCellDU=(\\d+)" },
-            "properties": [{ "id": "displayName", "value": "$1 / NRCellDU=$2" }]
+      "transformations": [
+        {
+          "id": "renameByRegex",
+          "options": {
+            "regex": ".*ManagedElement=([^,]+),NRCellDU=(\\d+)\\..*",
+            "renamePattern": "$1 / cell $2"
           }
-        ]
-      },
-      "options": { "legend": { "displayMode": "table", "placement": "right", "showLegend": true, "calcs": ["mean", "max"] } }
+        }
+      ],
+      "fieldConfig": { "defaults": { "unit": "short", "decimals": 1 }, "overrides": [] },
+      "options": { "legend": { "displayMode": "list", "placement": "bottom", "showLegend": true } }
     }
   ],
   "refresh": "30s",
@@ -170,6 +175,6 @@
   "timezone": "browser",
   "title": "VES NR cell DU measurement",
   "uid": "ves-nrcell-du",
-  "version": 3,
+  "version": 4,
   "weekStart": ""
 }

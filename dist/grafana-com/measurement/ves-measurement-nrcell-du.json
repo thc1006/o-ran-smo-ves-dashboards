@@ -29,7 +29,7 @@
         "x": 0,
         "y": 0,
         "w": 12,
-        "h": 8
+        "h": 9
       },
       "datasource": "${DS_INFLUXDB}",
       "id": 1,
@@ -42,34 +42,26 @@
           "resultFormat": "time_series"
         }
       ],
+      "transformations": [
+        {
+          "id": "renameByRegex",
+          "options": {
+            "regex": ".*ManagedElement=([^,]+),NRCellDU=(\\d+)\\..*",
+            "renamePattern": "$1 / cell $2"
+          }
+        }
+      ],
       "fieldConfig": {
         "defaults": {
           "unit": "decbytes"
         },
-        "overrides": [
-          {
-            "matcher": {
-              "id": "byRegexp",
-              "options": "SubNetwork=[^,]*,ManagedElement=([^,]+),NRCellDU=(\\d+)"
-            },
-            "properties": [
-              {
-                "id": "displayName",
-                "value": "$1 / NRCellDU=$2"
-              }
-            ]
-          }
-        ]
+        "overrides": []
       },
       "options": {
         "legend": {
-          "displayMode": "table",
-          "placement": "right",
-          "showLegend": true,
-          "calcs": [
-            "mean",
-            "max"
-          ]
+          "displayMode": "list",
+          "placement": "bottom",
+          "showLegend": true
         }
       }
     },
@@ -80,7 +72,7 @@
         "x": 12,
         "y": 0,
         "w": 12,
-        "h": 8
+        "h": 9
       },
       "datasource": "${DS_INFLUXDB}",
       "id": 2,
@@ -93,34 +85,27 @@
           "resultFormat": "time_series"
         }
       ],
+      "transformations": [
+        {
+          "id": "renameByRegex",
+          "options": {
+            "regex": ".*ManagedElement=([^,]+),NRCellDU=(\\d+)\\..*",
+            "renamePattern": "$1 / cell $2"
+          }
+        }
+      ],
       "fieldConfig": {
         "defaults": {
-          "unit": "short"
+          "unit": "short",
+          "decimals": 1
         },
-        "overrides": [
-          {
-            "matcher": {
-              "id": "byRegexp",
-              "options": "SubNetwork=[^,]*,ManagedElement=([^,]+),NRCellDU=(\\d+)"
-            },
-            "properties": [
-              {
-                "id": "displayName",
-                "value": "$1 / NRCellDU=$2"
-              }
-            ]
-          }
-        ]
+        "overrides": []
       },
       "options": {
         "legend": {
-          "displayMode": "table",
-          "placement": "right",
-          "showLegend": true,
-          "calcs": [
-            "mean",
-            "max"
-          ]
+          "displayMode": "list",
+          "placement": "bottom",
+          "showLegend": true
         }
       }
     },
@@ -129,9 +114,9 @@
       "title": "Active UEs per cell (last value)",
       "gridPos": {
         "x": 0,
-        "y": 8,
+        "y": 9,
         "w": 12,
-        "h": 6
+        "h": 7
       },
       "datasource": "${DS_INFLUXDB}",
       "id": 3,
@@ -139,9 +124,18 @@
         {
           "refId": "A",
           "datasource": "${DS_INFLUXDB}",
-          "query": "SELECT last(\"DRB.MeanActiveUeDl\") FROM /^SubNetwork=$subnetwork.*ManagedElement=$gnb.*NRCellDU=.*$/ WHERE $timeFilter",
+          "query": "SELECT last(\"DRB.MeanActiveUeDl\") FROM /^SubNetwork=$subnetwork.*ManagedElement=$gnb.*NRCellDU=.*$/ WHERE $timeFilter GROUP BY *",
           "rawQuery": true,
           "resultFormat": "time_series"
+        }
+      ],
+      "transformations": [
+        {
+          "id": "renameByRegex",
+          "options": {
+            "regex": ".*ManagedElement=([^,]+),NRCellDU=(\\d+)\\..*",
+            "renamePattern": "$1 / cell $2"
+          }
         }
       ],
       "options": {
@@ -154,27 +148,15 @@
         },
         "colorMode": "value",
         "graphMode": "area",
-        "textMode": "value_and_name"
+        "textMode": "value_and_name",
+        "justifyMode": "auto"
       },
       "fieldConfig": {
         "defaults": {
           "unit": "short",
-          "decimals": 0
+          "decimals": 1
         },
-        "overrides": [
-          {
-            "matcher": {
-              "id": "byRegexp",
-              "options": "SubNetwork=[^,]*,ManagedElement=([^,]+),NRCellDU=(\\d+)"
-            },
-            "properties": [
-              {
-                "id": "displayName",
-                "value": "$1 / cell $2"
-              }
-            ]
-          }
-        ]
+        "overrides": []
       }
     },
     {
@@ -182,9 +164,9 @@
       "title": "PRB Usage UL (RRU.PrbUsedUl) per cell",
       "gridPos": {
         "x": 12,
-        "y": 8,
+        "y": 9,
         "w": 12,
-        "h": 6
+        "h": 7
       },
       "datasource": "${DS_INFLUXDB}",
       "id": 4,
@@ -197,34 +179,27 @@
           "resultFormat": "time_series"
         }
       ],
+      "transformations": [
+        {
+          "id": "renameByRegex",
+          "options": {
+            "regex": ".*ManagedElement=([^,]+),NRCellDU=(\\d+)\\..*",
+            "renamePattern": "$1 / cell $2"
+          }
+        }
+      ],
       "fieldConfig": {
         "defaults": {
-          "unit": "short"
+          "unit": "short",
+          "decimals": 1
         },
-        "overrides": [
-          {
-            "matcher": {
-              "id": "byRegexp",
-              "options": "SubNetwork=[^,]*,ManagedElement=([^,]+),NRCellDU=(\\d+)"
-            },
-            "properties": [
-              {
-                "id": "displayName",
-                "value": "$1 / NRCellDU=$2"
-              }
-            ]
-          }
-        ]
+        "overrides": []
       },
       "options": {
         "legend": {
-          "displayMode": "table",
-          "placement": "right",
-          "showLegend": true,
-          "calcs": [
-            "mean",
-            "max"
-          ]
+          "displayMode": "list",
+          "placement": "bottom",
+          "showLegend": true
         }
       }
     }
@@ -285,7 +260,7 @@
   "timezone": "browser",
   "title": "VES NR cell DU measurement",
   "uid": "ves-nrcell-du",
-  "version": 3,
+  "version": 4,
   "weekStart": "",
   "__inputs": [
     {
