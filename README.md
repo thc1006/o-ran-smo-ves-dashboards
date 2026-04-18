@@ -74,13 +74,22 @@ python ../scripts/seed-events.py --count 500 --rate 10
 ```
 
 After the seeder finishes, open Grafana and browse the `VES` folder. The
-`ves-nrcell-du-proto` dashboard should render data on its 4 panels.
+`ves-nrcell-du` and `ves-nrcell-cu` dashboards should render data on their
+panels.
 
-This layer is good for iterating on dashboard visuals. It is **not**
-representative of the real `nonrtric-plt-influxlogger` schema; Phase 1
-(Layer 2 below) addresses that. See
-`docs/schema-ground-truth-reference-2026-04-19-demo.md` for the exact
-schema the dashboard targets right now.
+This layer is good for iterating on dashboard visuals. The dashboard
+queries match the `nonrtric-plt-influxlogger` schema end-to-end, validated
+2026-04-19 via the `phase-1-work/minimal-probe` stack (Kafka -> pmlog ->
+InfluxDB). See
+`docs/schema-ground-truth-reference-2026-04-19-influxlogger-source.md`
+for the canonical schema contract.
+
+**Pointing these dashboards at a real influxlogger deployment** also
+requires a v1 DBRP mapping on the `pm_data` bucket so InfluxDB 2.x can
+serve the dashboards' InfluxQL queries. The local `demo/` stack
+bootstraps this automatically; prod needs a one-time
+`influx v1 dbrp create --db pm_data --rp autogen --bucket-id <id>
+--default`. Details in the schema-ground-truth doc referenced above.
 
 ### Layer 2 -- kind + real nonrtric-plt-ranpm (heavy, for schema probing)
 

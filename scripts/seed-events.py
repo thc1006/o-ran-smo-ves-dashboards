@@ -44,8 +44,13 @@ _NRCELL_DU_FDN_TEMPLATES = [
     "SubNetwork=NYCU,ManagedElement=gNB-Hsinchu-{i:02d},NRCellDU=2",
     "SubNetwork=NYCU,ManagedElement=gNB-Keelung-{i:02d},NRCellDU=1",
 ]
+_NRCELL_CU_FDN_TEMPLATES = [
+    "SubNetwork=NYCU,ManagedElement=gNB-Taipei-{i:02d},NRCellCU=1",
+    "SubNetwork=NYCU,ManagedElement=gNB-Hsinchu-{i:02d},NRCellCU=1",
+    "SubNetwork=NYCU,ManagedElement=gNB-Keelung-{i:02d},NRCellCU=1",
+]
 
-_PM_COUNTER_NAMES = [
+_PM_COUNTER_NAMES_DU = [
     # A minimal selection from 3GPP TS 28.552 NR cell DU counters.
     "DRB.PdcpSduVolumeDl_Filter",
     "DRB.PdcpSduVolumeUl_Filter",
@@ -53,17 +58,22 @@ _PM_COUNTER_NAMES = [
     "RRU.PrbUsedDl",
     "RRU.PrbUsedUl",
 ]
+_PM_COUNTER_NAMES_CU = [
+    # 3GPP TS 28.552 NR cell CU counters -- RRC + NG handover.
+    "RRC.ConnEstabAtt.sum",
+    "RRC.ConnEstabSucc.sum",
+    "NG.HOExeAtt",
+    "NG.HOExeSucc",
+]
 
 
-def _random_counter_values() -> dict[str, float]:
-    return {
-        name: round(random.uniform(0, 1_000_000), 2) for name in _PM_COUNTER_NAMES
-    }
+def _random_counter_values(names: list[str]) -> dict[str, float]:
+    return {name: round(random.uniform(0, 1_000_000), 2) for name in names}
 
 
-def _make_measurement_point(fdn: str, ts_ns: int) -> Point:
+def _make_measurement_point(fdn: str, ts_ns: int, counters: list[str]) -> Point:
     p = Point(fdn)
-    for k, v in _random_counter_values().items():
+    for k, v in _random_counter_values(counters).items():
         p = p.field(k, v)
     return p.time(ts_ns, write_precision=WritePrecision.NS)
 
@@ -141,11 +151,21 @@ def main() -> int:
         write_api = client.write_api(write_options=SYNCHRONOUS)
         try:
             interval = 1.0 / args.rate if args.rate > 0 else 0
-            fdns = [
+            du_fdns = [
                 tpl.format(i=i)
                 for tpl in _NRCELL_DU_FDN_TEMPLATES
                 for i in range(1, 4)
             ]
+            cu_fdns = [
+                tpl.format(i=i)
+                for tpl in _NRCELL_CU_FDN_TEMPLATES
+                for i in range(1, 4)
+            ]
+            # heartbeat/fault use a shared pool of source names. These
+            # two domains are dev-only: real influxlogger only consumes
+            # perf3gpp PM data, so ves_heartbeat / ves_fault points
+            # never appear in a production pm_data bucket.
+            fdns = du_fdns + cu_fdns
 
             print(
                 f"seeding {args.count} points/domain ({','.join(domains)}) "
@@ -157,7 +177,16 @@ def main() -> int:
                 ts_ns = time.time_ns()
                 points = []
                 if "measurement" in domains:
-                    points.append(_make_measurement_point(random.choice(fdns), ts_ns))
+                    points.append(
+                        _make_measurement_point(
+                            random.choice(du_fdns), ts_ns, _PM_COUNTER_NAMES_DU
+                        )
+                    )
+                    points.append(
+                        _make_measurement_point(
+                            random.choice(cu_fdns), ts_ns, _PM_COUNTER_NAMES_CU
+                        )
+                    )
                 if "heartbeat" in domains:
                     points.append(
                         Point("ves_heartbeat")

@@ -130,8 +130,12 @@ jobs:
             http://localhost:3000/api/search?type=dash-db \
             | python -c "import sys, json; \
               d = json.load(sys.stdin); \
-              print(f'loaded {len(d)} dashboard(s)'); \
-              sys.exit(0 if any(x['uid'] == 'ves-nrcell-du-proto' for x in d) else 1)"
+              uids = {x['uid'] for x in d}; \
+              required = {'ves-nrcell-du', 'ves-nrcell-cu'}; \
+              missing = required - uids; \
+              print(f'loaded {len(d)} dashboard(s); uids={sorted(uids)}'); \
+              print(f'missing: {sorted(missing)}') if missing else None; \
+              sys.exit(1 if missing else 0)"
 
       - name: Dump container logs on failure
         if: failure()

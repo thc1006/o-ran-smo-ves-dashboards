@@ -1,0 +1,202 @@
+{
+  "annotations": {
+    "list": [
+      {
+        "builtIn": 1,
+        "datasource": { "type": "grafana", "uid": "-- Grafana --" },
+        "enable": true,
+        "hide": true,
+        "iconColor": "rgba(0, 211, 255, 1)",
+        "name": "Annotations & Alerts",
+        "type": "dashboard"
+      }
+    ]
+  },
+  "description": "NR cell CU PM counters landing in the influxlogger bucket: RRC connection establishment and NG handover execution. Validated end-to-end on 2026-04-19 against nonrtric-plt-pmlog:1.1.0 via the minimal-probe stack. See docs/schema-ground-truth-reference-2026-04-19-influxlogger-source.md: measurement is the full DN (SubNetwork=...,ManagedElement=...,NRCellCU=...), no user tags, fields are the raw counter names. Datasource UID is hardcoded to 'influxdb-ves' to match provisioning.",
+  "editable": true,
+  "fiscalYearStartMonth": 0,
+  "graphTooltip": 1,
+  "id": null,
+  "links": [],
+  "panels": [
+    {
+      "type": "timeseries",
+      "title": "RRC Connection Establishment (attempts vs success) per cell",
+      "gridPos": { "x": 0, "y": 0, "w": 12, "h": 8 },
+      "datasource": { "type": "influxdb", "uid": "influxdb-ves" },
+      "id": 1,
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": { "type": "influxdb", "uid": "influxdb-ves" },
+          "query": "SELECT mean(\"RRC.ConnEstabAtt.sum\") AS attempts, mean(\"RRC.ConnEstabSucc.sum\") AS success FROM /^SubNetwork=$subnetwork.*ManagedElement=$gnb.*NRCellCU=.*$/ WHERE $timeFilter GROUP BY time($__interval) fill(null)",
+          "rawQuery": true,
+          "resultFormat": "time_series"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": { "unit": "short" },
+        "overrides": [
+          {
+            "matcher": { "id": "byRegexp", "options": "SubNetwork=[^,]*,ManagedElement=([^,]+),NRCellCU=(\\d+)\\.(attempts|success)" },
+            "properties": [{ "id": "displayName", "value": "$1 / NRCellCU=$2 ($3)" }]
+          }
+        ]
+      },
+      "options": { "legend": { "displayMode": "table", "placement": "right", "showLegend": true, "calcs": ["mean", "max"] } }
+    },
+    {
+      "type": "stat",
+      "title": "RRC Connection Success Rate (last value)",
+      "gridPos": { "x": 12, "y": 0, "w": 12, "h": 8 },
+      "datasource": { "type": "influxdb", "uid": "influxdb-ves" },
+      "id": 2,
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": { "type": "influxdb", "uid": "influxdb-ves" },
+          "query": "SELECT (last(\"RRC.ConnEstabSucc.sum\") / last(\"RRC.ConnEstabAtt.sum\")) * 100 FROM /^SubNetwork=$subnetwork.*ManagedElement=$gnb.*NRCellCU=.*$/ WHERE $timeFilter GROUP BY *",
+          "rawQuery": true,
+          "resultFormat": "time_series"
+        }
+      ],
+      "options": {
+        "reduceOptions": { "calcs": ["lastNotNull"], "fields": "", "values": false },
+        "colorMode": "value",
+        "graphMode": "area",
+        "textMode": "value_and_name"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "percent",
+          "decimals": 1,
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              { "color": "red", "value": null },
+              { "color": "orange", "value": 90 },
+              { "color": "green", "value": 98 }
+            ]
+          }
+        },
+        "overrides": [
+          {
+            "matcher": { "id": "byRegexp", "options": "SubNetwork=[^,]*,ManagedElement=([^,]+),NRCellCU=(\\d+)" },
+            "properties": [{ "id": "displayName", "value": "$1 / cell $2" }]
+          }
+        ]
+      }
+    },
+    {
+      "type": "timeseries",
+      "title": "NG Handover Execution (attempts vs success) per cell",
+      "gridPos": { "x": 0, "y": 8, "w": 12, "h": 8 },
+      "datasource": { "type": "influxdb", "uid": "influxdb-ves" },
+      "id": 3,
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": { "type": "influxdb", "uid": "influxdb-ves" },
+          "query": "SELECT mean(\"NG.HOExeAtt\") AS attempts, mean(\"NG.HOExeSucc\") AS success FROM /^SubNetwork=$subnetwork.*ManagedElement=$gnb.*NRCellCU=.*$/ WHERE $timeFilter GROUP BY time($__interval) fill(null)",
+          "rawQuery": true,
+          "resultFormat": "time_series"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": { "unit": "short" },
+        "overrides": [
+          {
+            "matcher": { "id": "byRegexp", "options": "SubNetwork=[^,]*,ManagedElement=([^,]+),NRCellCU=(\\d+)\\.(attempts|success)" },
+            "properties": [{ "id": "displayName", "value": "$1 / NRCellCU=$2 ($3)" }]
+          }
+        ]
+      },
+      "options": { "legend": { "displayMode": "table", "placement": "right", "showLegend": true, "calcs": ["mean", "max"] } }
+    },
+    {
+      "type": "stat",
+      "title": "NG Handover Success Rate (last value)",
+      "gridPos": { "x": 12, "y": 8, "w": 12, "h": 8 },
+      "datasource": { "type": "influxdb", "uid": "influxdb-ves" },
+      "id": 4,
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": { "type": "influxdb", "uid": "influxdb-ves" },
+          "query": "SELECT (last(\"NG.HOExeSucc\") / last(\"NG.HOExeAtt\")) * 100 FROM /^SubNetwork=$subnetwork.*ManagedElement=$gnb.*NRCellCU=.*$/ WHERE $timeFilter GROUP BY *",
+          "rawQuery": true,
+          "resultFormat": "time_series"
+        }
+      ],
+      "options": {
+        "reduceOptions": { "calcs": ["lastNotNull"], "fields": "", "values": false },
+        "colorMode": "value",
+        "graphMode": "area",
+        "textMode": "value_and_name"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "percent",
+          "decimals": 1,
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              { "color": "red", "value": null },
+              { "color": "orange", "value": 95 },
+              { "color": "green", "value": 99 }
+            ]
+          }
+        },
+        "overrides": [
+          {
+            "matcher": { "id": "byRegexp", "options": "SubNetwork=[^,]*,ManagedElement=([^,]+),NRCellCU=(\\d+)" },
+            "properties": [{ "id": "displayName", "value": "$1 / cell $2" }]
+          }
+        ]
+      }
+    }
+  ],
+  "refresh": "30s",
+  "schemaVersion": 41,
+  "style": "dark",
+  "tags": ["ves", "o-ran", "smo", "influxlogger", "nrcell-cu"],
+  "templating": {
+    "list": [
+      {
+        "name": "subnetwork",
+        "label": "SubNetwork",
+        "type": "query",
+        "datasource": { "type": "influxdb", "uid": "influxdb-ves" },
+        "query": "SHOW MEASUREMENTS",
+        "regex": "/^SubNetwork=([^,]+),/",
+        "includeAll": true,
+        "allValue": ".*",
+        "current": { "text": "All", "value": "$__all" },
+        "refresh": 2,
+        "sort": 1,
+        "multi": false
+      },
+      {
+        "name": "gnb",
+        "label": "gNB",
+        "type": "query",
+        "datasource": { "type": "influxdb", "uid": "influxdb-ves" },
+        "query": "SHOW MEASUREMENTS",
+        "regex": "/ManagedElement=([^,]+),/",
+        "includeAll": true,
+        "allValue": ".*",
+        "current": { "text": "All", "value": "$__all" },
+        "refresh": 2,
+        "sort": 1,
+        "multi": true
+      }
+    ]
+  },
+  "time": { "from": "now-1h", "to": "now" },
+  "timepicker": {},
+  "timezone": "browser",
+  "title": "VES NR cell CU measurement",
+  "uid": "ves-nrcell-cu",
+  "version": 1,
+  "weekStart": ""
+}

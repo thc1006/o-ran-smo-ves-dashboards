@@ -2,6 +2,43 @@
 
 ## [Unreleased]
 
+## [0.2.0] - 2026-04-19
+
+### Added
+- `dashboards/measurement/ves-measurement-nrcell-du.json` -- promoted
+  from prototype to stable. Queries validated end-to-end against real
+  `nonrtric-plt-pmlog:1.1.0` via the `phase-1-work/minimal-probe` stack
+  (Kafka 3.9 KRaft -> pmlog -> InfluxDB 2.7). Panels: PDCP DL volume,
+  PRB usage DL/UL, active UEs per cell.
+- `dashboards/measurement/ves-measurement-nrcell-cu.json` -- new. Four
+  panels for NRCellCU PM counters: RRC connection establishment
+  (attempts vs success + success-rate stat) and NG handover execution
+  (attempts vs success + success-rate stat).
+- `docs/schema-ground-truth-reference-2026-04-19-influxlogger-source.md`
+  -- canonical schema contract: measurement = full DN
+  `SubNetwork=...,ManagedElement=...,<cell>=...`, no user tags, fields
+  are `GranularityPeriod` plus the raw perf3gpp counter names. Source
+  audit (InfluxStore.storeInInflux) + empirical probe agree 100%
+  (confidence 99%).
+
+### Changed
+- README "light local dev" section now points at the stable dashboard
+  uids (`ves-nrcell-du`, `ves-nrcell-cu`) and at the influxlogger-source
+  schema doc; demo-layer caveat removed.
+- CI `Dashboard loads in Grafana` check updated to look for
+  `ves-nrcell-du` (was `ves-nrcell-du-proto`).
+
+### Removed
+- `dashboards/measurement/ves-measurement-nrcell-du-prototype.json` --
+  superseded by the stable `ves-measurement-nrcell-du.json`.
+
+### Scope note
+- Dashboards for fault / heartbeat / stndDefined event domains are
+  deliberately out of scope for influxlogger: the service only consumes
+  perf3gpp PM data, so those events never reach the `pm_data` bucket.
+  Visualising them belongs to a different downstream (tracked for a
+  future `ves-dmaap-dashboards` spin-off if demand appears).
+
 ## [0.1.0] - 2026-04-19
 
 ### Added

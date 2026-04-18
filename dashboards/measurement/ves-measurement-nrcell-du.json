@@ -12,7 +12,7 @@
       }
     ]
   },
-  "description": "Prototype dashboard for NR cell DU PM counters landing in the 'ves' bucket. Built against the 2026-04-19 demo-layer schema probe (NOT yet validated against real nonrtric-plt-influxlogger). See docs/schema-ground-truth-reference-2026-04-19-demo.md for the query contract. Datasource UID is hardcoded to 'influxdb-ves' to match the provisioning YAML; for grafana.com community upload use, re-export via Grafana UI so the JSON picks up __inputs / ${DS_INFLUXDB} templating (tracked for v0.2.0).",
+  "description": "NR cell DU PM counters landing in the influxlogger bucket. Validated end-to-end on 2026-04-19 against nonrtric-plt-pmlog:1.1.0 via the minimal-probe stack (Kafka -> pmlog -> InfluxDB). See docs/schema-ground-truth-reference-2026-04-19-influxlogger-source.md: measurement is the full DN (SubNetwork=...,ManagedElement=...,NRCellDU=...), no user tags, fields are GranularityPeriod plus the raw counter names. Datasource UID is hardcoded to 'influxdb-ves' to match provisioning; for grafana.com upload use, re-export via UI so JSON picks up __inputs / ${DS_INFLUXDB} templating (tracked for v0.2.0).",
   "editable": true,
   "fiscalYearStartMonth": 0,
   "graphTooltip": 1,
@@ -132,7 +132,7 @@
   "refresh": "30s",
   "schemaVersion": 41,
   "style": "dark",
-  "tags": ["ves", "o-ran", "smo", "prototype"],
+  "tags": ["ves", "o-ran", "smo", "influxlogger", "nrcell-du"],
   "templating": {
     "list": [
       {
@@ -168,8 +168,8 @@
   "time": { "from": "now-1h", "to": "now" },
   "timepicker": {},
   "timezone": "browser",
-  "title": "VES NR cell DU measurement (prototype)",
-  "uid": "ves-nrcell-du-proto",
-  "version": 2,
+  "title": "VES NR cell DU measurement",
+  "uid": "ves-nrcell-du",
+  "version": 3,
   "weekStart": ""
 }

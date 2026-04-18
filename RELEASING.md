@@ -7,7 +7,7 @@
 - [ ] `python -c "import json; [json.load(open(p, encoding='utf-8'))
       for p in __import__('pathlib').Path('dashboards').rglob('*.json')]"`
       exits 0 (all dashboard JSONs are valid)
-- [ ] The prototype still renders against the demo stack:
+- [ ] The dashboards still render against the demo stack:
   ```bash
   cp demo/.env.example demo/.env
   docker compose -f demo/docker-compose.yaml up -d
@@ -84,7 +84,8 @@ If a dashboard is superseded or structurally unsound:
 
 ## Why dashboards are not on a Helm chart release flow yet
 
-Because there's only one prototype dashboard right now. Once we have
-the full Phase-1-derived catalogue (v0.2.0+), wrap them in a Helm
-library chart with a proper chart `version:` field, and that chart
-version becomes the canonical version number.
+The v0.2.0 catalogue (NRCellDU + NRCellCU) is still small enough that
+a Helm wrapping adds more moving parts than it earns. Once the catalogue
+grows past ~5 dashboards, wrap them in a Helm library chart with a proper
+chart `version:` field, and that chart version becomes the canonical
+version number.
