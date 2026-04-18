@@ -8,9 +8,13 @@ uv.lock
 demo/data/
 demo/.influx-token
 
-# Probe output
-docs/schema-ground-truth-*.md
+# Probe output -- by default keep local runs out of git; explicitly commit
+# reference runs (e.g. the demo-layer validation) via `git add -f`.
+# The TEMPLATE and any files named schema-ground-truth-reference-*.md are
+# always tracked.
+docs/schema-ground-truth-20*.md
 !docs/schema-ground-truth-TEMPLATE.md
+!docs/schema-ground-truth-reference-*.md
 
 # Kubernetes / Helm caches
 kind/kubeconfig
