@@ -23,6 +23,17 @@ and by each dashboard's grafana.com listing.
 
 ## How to (re)capture
 
-See `scripts/capture-screenshots.md` at repo root for the step-by-step
-manual procedure (bring up demo stack, seed data, open Grafana, shoot
-each dashboard, save to this directory).
+Automated via Playwright:
+
+```bash
+pip install playwright && playwright install chromium
+cd demo && docker compose up -d && cd ..
+INFLUX_ADMIN_TOKEN=$(grep ^INFLUX_ADMIN_TOKEN demo/.env | cut -d= -f2) \
+  python scripts/seed-events.py --count 60 --window-seconds 3600 --domains measurement
+python scripts/capture-screenshots.py
+```
+
+The script logs in, hides nav chrome via CSS (Grafana 12's `?kiosk=tv`
+URL param is flaky), waits for panels to render, and writes PNGs back
+to this directory. See `scripts/capture-screenshots.py` for the exact
+flow.
